@@ -61,6 +61,45 @@
     .buy-btn:hover {
       background-color: #e64a19;
     }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .modal-content button {
+      width: 100%;
+      background-color: #6A0DAD;
+      color: white;
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -69,30 +108,64 @@
     <p>Commandez en quelques clics – livraison rapide garantie !</p>
   </header>
 
-  <div class="container">
-    <!-- Génération dynamique de 12 produits -->
-    <script>
-      const products = Array.from({ length: 12 }, (_, i) => ({
-        name: `Produit ${i + 1}`,
-        price: `${(Math.random() * 10000 + 2000).toFixed(0)} FCFA`,
-        image: `https://source.unsplash.com/featured/?product,${i}`,
-      }));
+  <div class="container"></div>
 
-      const container = document.querySelector('.container');
-      products.forEach((p) => {
-        const div = document.createElement('div');
-        div.className = 'product';
-        div.innerHTML = `
-          <img src="${p.image}" alt="${p.name}" />
-          <div class="product-info">
-            <h3 class="product-title">${p.name}</h3>
-            <p class="product-price">${p.price}</p>
-            <button class="buy-btn">Acheter maintenant</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    </script>
+  <!-- Modal Form -->
+  <div id="paymentModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Finalisez votre commande</h2>
+      <input type="text" id="fullName" placeholder="Votre nom complet" required />
+      <input type="text" id="phoneNumber" placeholder="Numéro MTN" required />
+      <input type="text" id="location" placeholder="Votre adresse ou arrêt" required />
+      <button onclick="submitPayment()">Confirmer le paiement</button>
+    </div>
   </div>
+
+  <script>
+    const products = Array.from({ length: 12 }, (_, i) => ({
+      name: `Produit ${i + 1}`,
+      price: `${(Math.random() * 10000 + 2000).toFixed(0)} FCFA`,
+      image: `https://source.unsplash.com/featured/?product,${i}`,
+    }));
+
+    const container = document.querySelector('.container');
+    let selectedProduct = null;
+
+    products.forEach((p) => {
+      const div = document.createElement('div');
+      div.className = 'product';
+      div.innerHTML = `
+        <img src="${p.image}" alt="${p.name}" />
+        <div class="product-info">
+          <h3 class="product-title">${p.name}</h3>
+          <p class="product-price">${p.price}</p>
+          <button class="buy-btn">Acheter maintenant</button>
+        </div>
+      `;
+      const btn = div.querySelector('.buy-btn');
+      btn.addEventListener('click', () => {
+        selectedProduct = p;
+        document.getElementById('paymentModal').style.display = 'flex';
+      });
+      container.appendChild(div);
+    });
+
+    function submitPayment() {
+      const name = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const location = document.getElementById('location').value.trim();
+
+      if (!name || !phone || !location) {
+        alert("Merci de remplir tous les champs.");
+        return;
+      }
+
+      const message = `Nouvelle commande:\n\nProduit: ${selectedProduct.name}\nPrix: ${selectedProduct.price}\nNom: ${name}\nTéléphone: ${phone}\nAdresse: ${location}`;
+      alert(message);
+
+      document.getElementById('paymentModal').style.display = 'none';
+      // Ici tu pourras ajouter l'appel à l'API Lygos plus tard
+    }
+  </script>
 </body>
 </html>
