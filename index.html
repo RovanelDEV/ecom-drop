@@ -11,7 +11,7 @@
       background-color: #f5f5f5;
     }
     header {
-      background-color: #6A0DAD; /* 💡 Couleur du header */
+      background-color: #6A0DAD;
       color: white;
       padding: 20px;
       text-align: center;
@@ -49,7 +49,7 @@
       margin-bottom: 10px;
     }
     .buy-btn {
-      background-color: #FF5722; /* 💡 Couleur du bouton */
+      background-color: #FF5722;
       color: white;
       border: none;
       padding: 12px;
@@ -109,7 +109,6 @@
   </header>
 
   <div class="container">
-    <!-- 🛍️ Produit 1 -->
     <div class="product">
       <img src="https://source.unsplash.com/featured/?lips" alt="Rosisseur de lèvres" />
       <div class="product-info">
@@ -119,7 +118,6 @@
       </div>
     </div>
 
-    <!-- 🛍️ Produit 2 -->
     <div class="product">
       <img src="https://source.unsplash.com/featured/?teeth" alt="Blanchisseur de dents" />
       <div class="product-info">
@@ -128,11 +126,8 @@
         <button class="buy-btn">Acheter maintenant</button>
       </div>
     </div>
-
-    <!-- Tu peux ajouter d'autres produits ici → copie-colle un bloc ci-dessus -->
   </div>
 
-  <!-- Modal Form -->
   <div id="paymentModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2>Finalisez votre commande</h2>
@@ -148,7 +143,7 @@
     const modal = document.getElementById('paymentModal');
     let selectedProduct = null;
 
-    buyButtons.forEach((btn, index) => {
+    buyButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         const product = btn.closest('.product');
         const name = product.querySelector('.product-title').innerText;
@@ -158,75 +153,61 @@
       });
     });
 
-  async function submitPayment() {
-    
-  const name = document.getElementById('fullName').value.trim();
-  const phone = document.getElementById('phoneNumber').value.trim();
-  const location = document.getElementById('location').value.trim();
+    async function submitPayment() {
+      const name = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const location = document.getElementById('location').value.trim();
 
-  if (!name || !phone || !location) {
-    alert("Merci de remplir tous les champs.");
-    return;
-  }
+      if (!name || !phone || !location) {
+        alert("Merci de remplir tous les champs.");
+        return;
+      }
 
-  modal.style.display = 'none';
+      modal.style.display = 'none';
 
-  try {
-    const res = await fetch('https://api.lygosapp.com/v1/gateway', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer lygosapp-871ff755-b02f-4e09-abe8-7ab513b2ea29' // 🛠️ Remplace ici
-      },
-      body: JSON.stringify({
-        amount: Number(selectedProduct.price.replace(/[^0-9]/g, '')),
-        currency: 'XAF',
-        customer_name: name,
-        customer_phone: phone,
-        customer_metadata: {
-          product: selectedProduct.name,
-          location: location
-        },
-        callback_url: '',
-        return_url: 'https://rovaneldev.github.io/ecom-drop/merci.html'
-      })
-    });
-    const data = await res.json();
-    if (data.checkout_url) {
-      window.location.href = data.checkout_url;
-    } else {
-      console.error(data);
-      alert('Erreur Lygos : ' + (data.message || 'Pas d\'URL'));
-    }
-  } catch (err) {
-    console.error(err);
-    alert('Erreur réseau ou API Lygos.');
-  }
-}
+      try {
+        const res = await fetch('https://api.lygosapp.com/v1/gateway', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer lygosapp-871ff755-b02f-4e09-abe8-7ab513b2ea29'
+          },
+          body: JSON.stringify({
+            amount: Number(selectedProduct.price.replace(/[^0-9]/g, '')),
+            currency: 'XAF',
+            customer_name: name,
+            customer_phone: phone,
+            customer_metadata: {
+              product: selectedProduct.name,
+              location: location
+            },
+            callback_url: '',
+            return_url: 'https://rovaneldev.github.io/ecom-drop/merci.html'
+          })
+        });
 
+        const data = await res.json();
 
-      const message = `🛒 Nouvelle commande:\n\nProduit: ${selectedProduct.name}\nPrix: ${selectedProduct.price}\nNom: ${name}\nTéléphone: ${phone}\nAdresse: ${location}`;
+        const message = `🛒 Nouvelle commande:\n\nProduit: ${selectedProduct.name}\nPrix: ${selectedProduct.price}\nNom: ${name}\nTéléphone: ${phone}\nAdresse: ${location}`;
+        const token = '7694967219:AAHdEUQG3gtD9sguA7VvhlWtNIULlQMg74c'; // Remplace
+        const chatId = '6045605492';       // Remplace
 
-      // 🔁 À modifier → entre ton vrai token et ton vrai chat_id :
-      const token = '7694967219:AAHdEUQG3gtD9sguA7VvhlWtNIULlQMg74c'; // 🛠️ Ton token BotFather ici
-      const chatId = '604560549';       // 🛠️ Ton chat ID ici
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: message })
+        });
 
-      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert("Commande envoyée avec succès !");
-        modal.style.display = 'none';
-      })
-      .catch(err => {
-        alert("Erreur lors de l'envoi : " + err);
-      });
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          console.error(data);
+          alert('Erreur Lygos : ' + (data.message || 'Pas d\'URL'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erreur réseau ou API.');
+      }
     }
   </script>
 </body>
