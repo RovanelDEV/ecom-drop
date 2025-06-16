@@ -143,15 +143,13 @@
     const modal = document.getElementById('paymentModal');
     let selectedProduct = null;
 
-    buyButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const product = btn.closest('.product');
-        const name = product.querySelector('.product-title').innerText;
-        const price = product.querySelector('.product-price').innerText;
-        selectedProduct = { name, price };
-        modal.style.display = 'flex';
-      });
-    });
+    btn.addEventListener('click', () => {
+    const product = btn.closest('.product');
+    const name = product.querySelector('.product-title').innerText;
+    const price = product.querySelector('.product-price').innerText;
+    selectedProduct = { name, price };
+    modal.style.display = 'flex';
+  });
 
     async function submitPayment() {
       const name = document.getElementById('fullName').value.trim();
