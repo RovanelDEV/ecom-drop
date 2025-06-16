@@ -11,7 +11,7 @@
       background-color: #f5f5f5;
     }
     header {
-      background-color: #6A0DAD;
+      background-color: #6A0DAD; /* 💡 Couleur du header */
       color: white;
       padding: 20px;
       text-align: center;
@@ -49,7 +49,7 @@
       margin-bottom: 10px;
     }
     .buy-btn {
-      background-color: #FF5722;
+      background-color: #FF5722; /* 💡 Couleur du bouton */
       color: white;
       border: none;
       padding: 12px;
@@ -108,7 +108,29 @@
     <p>Commandez en quelques clics – livraison rapide garantie !</p>
   </header>
 
-  <div class="container"></div>
+  <div class="container">
+    <!-- 🛍️ Produit 1 -->
+    <div class="product">
+      <img src="https://source.unsplash.com/featured/?lips" alt="Rosisseur de lèvres" />
+      <div class="product-info">
+        <h3 class="product-title">Rosisseur de lèvres</h3>
+        <p class="product-price">2500 FCFA</p>
+        <button class="buy-btn">Acheter maintenant</button>
+      </div>
+    </div>
+
+    <!-- 🛍️ Produit 2 -->
+    <div class="product">
+      <img src="https://source.unsplash.com/featured/?teeth" alt="Blanchisseur de dents" />
+      <div class="product-info">
+        <h3 class="product-title">Blanchisseur de dents</h3>
+        <p class="product-price">3000 FCFA</p>
+        <button class="buy-btn">Acheter maintenant</button>
+      </div>
+    </div>
+
+    <!-- Tu peux ajouter d'autres produits ici → copie-colle un bloc ci-dessus -->
+  </div>
 
   <!-- Modal Form -->
   <div id="paymentModal" class="modal" style="display:none;">
@@ -122,49 +144,89 @@
   </div>
 
   <script>
-    const products = Array.from({ length: 12 }, (_, i) => ({
-      name: `Produit ${i + 1}`,
-      price: `${(Math.random() * 10000 + 2000).toFixed(0)} FCFA`,
-      image: `https://source.unsplash.com/featured/?product,${i}`,
-    }));
-
-    const container = document.querySelector('.container');
+    const buyButtons = document.querySelectorAll('.buy-btn');
+    const modal = document.getElementById('paymentModal');
     let selectedProduct = null;
 
-    products.forEach((p) => {
-      const div = document.createElement('div');
-      div.className = 'product';
-      div.innerHTML = `
-        <img src="${p.image}" alt="${p.name}" />
-        <div class="product-info">
-          <h3 class="product-title">${p.name}</h3>
-          <p class="product-price">${p.price}</p>
-          <button class="buy-btn">Acheter maintenant</button>
-        </div>
-      `;
-      const btn = div.querySelector('.buy-btn');
+    buyButtons.forEach((btn, index) => {
       btn.addEventListener('click', () => {
-        selectedProduct = p;
-        document.getElementById('paymentModal').style.display = 'flex';
+        const product = btn.closest('.product');
+        const name = product.querySelector('.product-title').innerText;
+        const price = product.querySelector('.product-price').innerText;
+        selectedProduct = { name, price };
+        modal.style.display = 'flex';
       });
-      container.appendChild(div);
     });
 
-    function submitPayment() {
-      const name = document.getElementById('fullName').value.trim();
-      const phone = document.getElementById('phoneNumber').value.trim();
-      const location = document.getElementById('location').value.trim();
+  async function submitPayment() {
+    
+  const name = document.getElementById('fullName').value.trim();
+  const phone = document.getElementById('phoneNumber').value.trim();
+  const location = document.getElementById('location').value.trim();
 
-      if (!name || !phone || !location) {
-        alert("Merci de remplir tous les champs.");
-        return;
-      }
+  if (!name || !phone || !location) {
+    alert("Merci de remplir tous les champs.");
+    return;
+  }
 
-      const message = `Nouvelle commande:\n\nProduit: ${selectedProduct.name}\nPrix: ${selectedProduct.price}\nNom: ${name}\nTéléphone: ${phone}\nAdresse: ${location}`;
-      alert(message);
+  modal.style.display = 'none';
 
-      document.getElementById('paymentModal').style.display = 'none';
-      // Ici tu pourras ajouter l'appel à l'API Lygos plus tard
+  try {
+    const res = await fetch('https://api.lygosapp.com/v1/gateway', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer lygosapp-871ff755-b02f-4e09-abe8-7ab513b2ea29' // 🛠️ Remplace ici
+      },
+      body: JSON.stringify({
+        amount: Number(selectedProduct.price.replace(/[^0-9]/g, '')),
+        currency: 'XAF',
+        customer_name: name,
+        customer_phone: phone,
+        customer_metadata: {
+          product: selectedProduct.name,
+          location: location
+        },
+        callback_url: '',
+        return_url: 'https://rovaneldev.github.io/ecom-drop/merci.html'
+      })
+    });
+    const data = await res.json();
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      console.error(data);
+      alert('Erreur Lygos : ' + (data.message || 'Pas d\'URL'));
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Erreur réseau ou API Lygos.');
+  }
+}
+
+
+      const message = `🛒 Nouvelle commande:\n\nProduit: ${selectedProduct.name}\nPrix: ${selectedProduct.price}\nNom: ${name}\nTéléphone: ${phone}\nAdresse: ${location}`;
+
+      // 🔁 À modifier → entre ton vrai token et ton vrai chat_id :
+      const token = '7694967219:AAHdEUQG3gtD9sguA7VvhlWtNIULlQMg74c'; // 🛠️ Ton token BotFather ici
+      const chatId = '604560549';       // 🛠️ Ton chat ID ici
+
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert("Commande envoyée avec succès !");
+        modal.style.display = 'none';
+      })
+      .catch(err => {
+        alert("Erreur lors de l'envoi : " + err);
+      });
     }
   </script>
 </body>
